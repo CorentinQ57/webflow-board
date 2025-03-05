@@ -8,8 +8,9 @@ import {
   Plus, 
   Search, 
   Menu,
-  X
+  Users
 } from "lucide-react";
+import { UserButton, useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -19,10 +20,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user } = useUser();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -36,6 +46,7 @@ const Navbar = () => {
   const navItems = [
     { title: "Tableaux de bord", icon: Home, path: "/" },
     { title: "Projets", icon: Layout, path: "/projects" },
+    { title: "Clients", icon: Users, path: "/clients" },
     { title: "Paramètres", icon: Settings, path: "/settings" },
   ];
 
@@ -81,10 +92,24 @@ const Navbar = () => {
               <Search size={18} />
             </Button>
             
-            <Button className="rounded-full focus-ring">
-              <Plus size={18} className="mr-2" />
-              <span>Nouveau</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="rounded-full focus-ring">
+                  <Plus size={18} className="mr-2" />
+                  <span>Nouveau</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>Nouveau projet</DropdownMenuItem>
+                <DropdownMenuItem>Nouvelle tâche</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Inviter un client</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {user && (
+              <UserButton afterSignOutUrl="/sign-in" />
+            )}
             
             <Sheet>
               <SheetTrigger asChild>

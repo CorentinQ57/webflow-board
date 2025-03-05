@@ -6,6 +6,18 @@ export interface Project {
   coverImage?: string;
   createdAt: Date;
   updatedAt: Date;
+  ownerId: string;
+  members: ProjectMember[];
+}
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  userId: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  email: string;
+  invitationAccepted: boolean;
+  invitedAt: Date;
 }
 
 export interface Board {
