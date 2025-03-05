@@ -19,14 +19,23 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const { isAuthenticated, loading } = useAuth();
 
+  // Afficher un loader plus visible pendant la vérification de l'authentification
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Chargement...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <span className="ml-3 text-primary">Chargement de votre session...</span>
+      </div>
+    );
   }
 
+  // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   if (!isAuthenticated) {
+    console.log("Non authentifié, redirection vers /sign-in");
     return <Navigate to="/sign-in" replace />;
   }
 
+  // Si authentifié, afficher la page demandée
   return element;
 };
 
@@ -34,14 +43,23 @@ const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
 const AuthRoute = ({ element }: { element: JSX.Element }) => {
   const { isAuthenticated, loading } = useAuth();
 
+  // Afficher un loader pendant la vérification de l'authentification
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Chargement...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <span className="ml-3 text-primary">Chargement de votre session...</span>
+      </div>
+    );
   }
 
+  // Rediriger vers la page d'accueil si l'utilisateur est déjà authentifié
   if (isAuthenticated) {
+    console.log("Déjà authentifié, redirection vers /");
     return <Navigate to="/" replace />;
   }
 
+  // Si non authentifié, afficher la page d'authentification
   return element;
 };
 

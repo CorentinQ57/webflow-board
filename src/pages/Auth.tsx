@@ -2,13 +2,13 @@
 import React, { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { signIn, signUp } from "@/services/authService";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/AuthContext";
+import { toast } from "sonner";
 
 export interface AuthPageProps {
   mode?: "sign-in" | "sign-up";
@@ -19,8 +19,16 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  // Afficher un loader pendant la vérification de l'authentification
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   // Rediriger l'utilisateur s'il est déjà connecté
   if (isAuthenticated) {
@@ -35,24 +43,18 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
       if (mode === "sign-in") {
         const session = await signIn(email, password);
         if (session) {
-          navigate("/");
+          console.log("Connexion réussie, redirection...");
+          navigate("/", { replace: true });
         }
       } else {
         const session = await signUp(email, password);
         if (session) {
-          toast({
-            title: "Compte créé avec succès",
-            description: "Veuillez vérifier votre email pour confirmer votre compte.",
-          });
+          toast.success("Compte créé avec succès! Veuillez vérifier votre email pour confirmer votre compte.");
         }
       }
     } catch (error: any) {
       console.error("Erreur d'authentification:", error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur s'est produite",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Une erreur s'est produite");
     } finally {
       setLoading(false);
     }
@@ -146,15 +148,9 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
                 setEmail("admin@webprojects.com");
                 setPassword("admin123");
                 if (mode === "sign-up") {
-                  toast({
-                    title: "Compte admin",
-                    description: "Les identifiants pour un compte admin ont été pré-remplis. Vous pouvez vous inscrire maintenant.",
-                  });
+                  toast.info("Les identifiants pour un compte admin ont été pré-remplis. Vous pouvez vous inscrire maintenant.");
                 } else {
-                  toast({
-                    title: "Compte admin",
-                    description: "Les identifiants pour un compte admin ont été pré-remplis. Vous pouvez vous connecter maintenant.",
-                  });
+                  toast.info("Les identifiants pour un compte admin ont été pré-remplis. Vous pouvez vous connecter maintenant.");
                 }
               }}
             >

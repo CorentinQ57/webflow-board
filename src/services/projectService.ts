@@ -27,7 +27,13 @@ export const fetchProjects = async (): Promise<Project[]> => {
         return { ...project, members: [] };
       }
 
-      return { ...project, members: members || [] };
+      // S'assurer que le role est bien typé
+      const typedMembers: ProjectMember[] = members.map(member => ({
+        ...member,
+        role: member.role as 'owner' | 'admin' | 'member' | 'viewer'
+      }));
+
+      return { ...project, members: typedMembers };
     })
   );
 

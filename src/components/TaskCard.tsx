@@ -1,114 +1,97 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Task } from "@/lib/types";
-import { Calendar, Clock, Paperclip, MessageSquare } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Calendar, Tag as TagIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Task, Tag } from "@/lib/types";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface TaskCardProps {
   task: Task;
+  className?: string;
+  draggable?: boolean;
 }
 
-const formatDate = (date: Date | undefined): string => {
-  if (!date) return "";
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "short",
-  }).format(date);
-};
-
-const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-  // Mock data for demo purposes
-  const commentsCount = 3;
-  const attachmentsCount = 2;
+const TaskCard = ({ task, className, draggable = true }: TaskCardProps) => {
+  // Fonction pour formater les dates
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    
+    return formatDistanceToNow(new Date(dateString), {
+      addSuffix: true,
+      locale: fr,
+    });
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      whileHover={{ y: -2 }}
+      className={cn(
+        "bg-card border rounded-lg shadow-sm overflow-hidden hover:shadow transition-all",
+        className
+      )}
+      draggable={draggable}
     >
-      <Card className="mb-3 cursor-pointer hover:shadow-md transition-all focus-ring">
-        {task.coverImage && (
-          <div className="h-32 w-full overflow-hidden">
-            <img
-              src={task.coverImage}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+      {task.cover_image && (
+        <div className="aspect-video bg-muted">
+          <img
+            src={task.cover_image}
+            alt={task.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <div className="p-3">
+        <h4 className="font-medium mb-2">{task.title}</h4>
+        
+        {task.description && (
+          <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+            {task.description}
+          </p>
+        )}
+        
+        {task.tags && task.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {task.tags.map((tag: Tag) => (
+              <Badge key={tag.id} style={{ backgroundColor: tag.color }} variant="outline" className="text-[9px]">
+                {tag.name}
+              </Badge>
+            ))}
           </div>
         )}
         
-        <CardContent className="p-3">
-          <h3 className="font-medium text-sm mb-2">{task.title}</h3>
-          
-          {task.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-              {task.description}
-            </p>
-          )}
-          
-          {task.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {task.tags.map(tag => (
-                <Badge
-                  key={tag.id}
-                  style={{ backgroundColor: tag.color + "20", color: tag.color }}
-                  className="text-[10px] px-1.5 py-0 font-normal rounded-sm"
-                >
-                  {tag.name}
-                </Badge>
-              ))}
+        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+          {task.due_date && (
+            <div className="flex items-center">
+              <Calendar className="mr-1 h-3 w-3" />
+              <span>{formatDate(task.due_date)}</span>
             </div>
           )}
-        </CardContent>
-        
-        <CardFooter className="p-3 pt-0 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            {task.dueDate && (
-              <div className="flex items-center">
-                <Calendar size={12} className="mr-1" />
-                <span>{formatDate(task.dueDate)}</span>
-              </div>
-            )}
-          </div>
           
-          <div className="flex items-center gap-3">
-            {attachmentsCount > 0 && (
-              <div className="flex items-center">
-                <Paperclip size={12} className="mr-1" />
-                <span>{attachmentsCount}</span>
-              </div>
-            )}
-            
-            {commentsCount > 0 && (
-              <div className="flex items-center">
-                <MessageSquare size={12} className="mr-1" />
-                <span>{commentsCount}</span>
-              </div>
-            )}
-            
-            {task.assignees && task.assignees.length > 0 && (
-              <div className="flex -space-x-2">
-                {task.assignees.slice(0, 3).map((assignee, index) => (
-                  <Avatar key={index} className="w-6 h-6 border-2 border-background">
-                    <AvatarFallback className="text-[10px]">
-                      {assignee.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-                {task.assignees.length > 3 && (
-                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] border-2 border-background">
+          {task.assignees && task.assignees.length > 0 && (
+            <div className="flex -space-x-2">
+              {task.assignees.slice(0, 3).map((assignee, index) => (
+                <Avatar key={index} className="h-6 w-6 border-2 border-background">
+                  <AvatarImage src={`https://i.pravatar.cc/150?u=${assignee}`} />
+                  <AvatarFallback className="text-[10px]">
+                    {assignee.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {task.assignees.length > 3 && (
+                <Avatar className="h-6 w-6 border-2 border-background">
+                  <AvatarFallback className="text-[10px] bg-muted">
                     +{task.assignees.length - 3}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </CardFooter>
-      </Card>
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 };

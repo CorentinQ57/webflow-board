@@ -27,6 +27,7 @@ export interface Board {
   description: string | null;
   created_at: string;
   updated_at: string;
+  columns?: Column[]; // Ajout d'une propriété optionnelle pour les colonnes
 }
 
 export interface Column {

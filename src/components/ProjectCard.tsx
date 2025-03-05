@@ -1,67 +1,72 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Calendar, Clock, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Project } from "@/lib/types";
-import { Calendar, Clock } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface ProjectCardProps {
   project: Project;
+  className?: string;
 }
 
-const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric"
-  }).format(date);
-};
+const ProjectCard = ({ project, className }: ProjectCardProps) => {
+  // Fonction pour formater les dates
+  const formatDate = (dateString: string) => {
+    return formatDistanceToNow(new Date(dateString), {
+      addSuffix: true,
+      locale: fr,
+    });
+  };
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
-    <Link to={`/board/${project.id}`} className="block">
-      <Card className="h-full overflow-hidden card-hover focus-ring">
-        {project.coverImage ? (
-          <div className="relative h-40 w-full overflow-hidden">
-            <img 
-              src={project.coverImage} 
-              alt={project.title} 
-              className="object-cover w-full h-full transition-transform duration-500 ease-in-out hover:scale-105"
-            />
-          </div>
+    <motion.div
+      whileHover={{ y: -5 }}
+      className={cn(
+        "bg-card border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all h-full flex flex-col",
+        className
+      )}
+    >
+      <div className="aspect-video bg-muted relative">
+        {project.cover_image ? (
+          <img
+            src={project.cover_image}
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="h-40 bg-gradient-to-r from-blue-500 to-blue-400 flex items-center justify-center">
-            <span className="text-white text-3xl font-bold">
+          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/30 flex items-center justify-center">
+            <span className="text-4xl font-bold text-primary/40">
               {project.title.substring(0, 2).toUpperCase()}
             </span>
           </div>
         )}
-        
-        <CardHeader className="py-4">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-lg line-clamp-1">{project.title}</CardTitle>
-            <Badge variant="outline" className="text-xs bg-primary/10 text-primary">
-              Site web
-            </Badge>
+      </div>
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 className="text-lg font-medium mb-2 line-clamp-1">{project.title}</h3>
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+          {project.description || "Aucune description"}
+        </p>
+        <div className="mt-auto space-y-2 text-sm text-muted-foreground">
+          <div className="flex items-center">
+            <Users className="mr-2 h-4 w-4" />
+            <span>
+              {project.members.length} {project.members.length > 1 ? "membres" : "membre"}
+            </span>
           </div>
-          <CardDescription className="line-clamp-2 mt-1">
-            {project.description}
-          </CardDescription>
-        </CardHeader>
-        
-        <CardFooter className="py-3 border-t text-sm text-muted-foreground flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar size={14} />
-            <span>{formatDate(project.createdAt)}</span>
+          <div className="flex items-center">
+            <Calendar className="mr-2 h-4 w-4" />
+            <span>Créé {formatDate(project.created_at)}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock size={14} />
-            <span>Modifié {formatDate(project.updatedAt)}</span>
+          <div className="flex items-center">
+            <Clock className="mr-2 h-4 w-4" />
+            <span>Mis à jour {formatDate(project.updated_at)}</span>
           </div>
-        </CardFooter>
-      </Card>
-    </Link>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
