@@ -20,6 +20,8 @@ const mockProjects: Project[] = [
     coverImage: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=2158&auto=format&fit=crop",
     createdAt: new Date("2023-09-15"),
     updatedAt: new Date("2023-10-20"),
+    ownerId: "user-123",
+    members: []
   },
   {
     id: "2",
@@ -28,6 +30,8 @@ const mockProjects: Project[] = [
     coverImage: "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?q=80&w=2074&auto=format&fit=crop",
     createdAt: new Date("2023-08-10"),
     updatedAt: new Date("2023-10-15"),
+    ownerId: "user-123",
+    members: []
   },
   {
     id: "3",
@@ -36,6 +40,8 @@ const mockProjects: Project[] = [
     coverImage: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop",
     createdAt: new Date("2023-07-22"),
     updatedAt: new Date("2023-10-05"),
+    ownerId: "user-123",
+    members: []
   },
   {
     id: "4",
@@ -44,6 +50,8 @@ const mockProjects: Project[] = [
     coverImage: "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop",
     createdAt: new Date("2023-06-30"),
     updatedAt: new Date("2023-09-28"),
+    ownerId: "user-123",
+    members: []
   },
   {
     id: "5",
@@ -52,6 +60,8 @@ const mockProjects: Project[] = [
     coverImage: "https://images.unsplash.com/photo-1589578527966-fdac0f44566c?q=80&w=1974&auto=format&fit=crop",
     createdAt: new Date("2023-06-05"),
     updatedAt: new Date("2023-09-15"),
+    ownerId: "user-123",
+    members: []
   },
   {
     id: "6",
@@ -60,6 +70,8 @@ const mockProjects: Project[] = [
     coverImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1973&auto=format&fit=crop",
     createdAt: new Date("2023-05-20"),
     updatedAt: new Date("2023-09-01"),
+    ownerId: "user-123",
+    members: []
   },
 ];
 
@@ -74,6 +86,8 @@ const Index = () => {
       description,
       createdAt: new Date(),
       updatedAt: new Date(),
+      ownerId: "user-123", // Ajout de la propriété manquante
+      members: [] // Ajout de la propriété manquante
     };
     
     setProjects([newProject, ...projects]);
