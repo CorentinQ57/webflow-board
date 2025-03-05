@@ -3,11 +3,12 @@ import React, { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { signIn, signUp } from "@/services/authService";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/lib/AuthContext";
 
 export interface AuthPageProps {
   mode?: "sign-in" | "sign-up";
@@ -17,26 +18,12 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { isAuthenticated } = useAuth();
 
   // Rediriger l'utilisateur s'il est déjà connecté
-  if (session) {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
@@ -46,29 +33,24 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
 
     try {
       if (mode === "sign-in") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-        navigate("/");
+        const session = await signIn(email, password);
+        if (session) {
+          navigate("/");
+        }
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-        toast({
-          title: "Compte créé avec succès",
-          description: "Veuillez vérifier votre email pour confirmer votre compte.",
-        });
+        const session = await signUp(email, password);
+        if (session) {
+          toast({
+            title: "Compte créé avec succès",
+            description: "Veuillez vérifier votre email pour confirmer votre compte.",
+          });
+        }
       }
     } catch (error: any) {
+      console.error("Erreur d'authentification:", error);
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Une erreur s'est produite",
         variant: "destructive",
       });
     } finally {
@@ -152,6 +134,32 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
                 )}
               </div>
             </form>
+          </div>
+
+          {/* Ajout d'un bouton pour créer facilement un compte admin */}
+          <div className="mt-4 text-center">
+            <a
+              href="#"
+              className="text-sm text-muted-foreground hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                setEmail("admin@webprojects.com");
+                setPassword("admin123");
+                if (mode === "sign-up") {
+                  toast({
+                    title: "Compte admin",
+                    description: "Les identifiants pour un compte admin ont été pré-remplis. Vous pouvez vous inscrire maintenant.",
+                  });
+                } else {
+                  toast({
+                    title: "Compte admin",
+                    description: "Les identifiants pour un compte admin ont été pré-remplis. Vous pouvez vous connecter maintenant.",
+                  });
+                }
+              }}
+            >
+              Utiliser un compte admin de test
+            </a>
           </div>
         </motion.div>
       </main>
