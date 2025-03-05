@@ -1,21 +1,80 @@
 
-import React from "react";
-import { Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { SignIn, SignUp, useAuth } from "@clerk/clerk-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export interface AuthPageProps {
   mode?: "sign-in" | "sign-up";
 }
 
 const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
-  const { isSignedIn } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<any>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Rediriger l'utilisateur s'il est déjà connecté
-  if (isSignedIn) {
+  if (session) {
     return <Navigate to="/" replace />;
   }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (mode === "sign-in") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+        navigate("/");
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+        toast({
+          title: "Compte créé avec succès",
+          description: "Veuillez vérifier votre email pour confirmer votre compte.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -46,33 +105,53 @@ const AuthPage = ({ mode = "sign-in" }: AuthPageProps) => {
               </p>
             </div>
 
-            <div className={cn("mx-auto")}>
-              {mode === "sign-in" ? (
-                <SignIn
-                  appearance={{
-                    elements: {
-                      rootBox: "w-full mx-auto",
-                      card: "shadow-none p-0 border-0",
-                      header: "hidden",
-                      footer: "hidden",
-                    },
-                  }}
-                  redirectUrl="/dashboard"
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="votre@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
-              ) : (
-                <SignUp
-                  appearance={{
-                    elements: {
-                      rootBox: "w-full mx-auto",
-                      card: "shadow-none p-0 border-0",
-                      header: "hidden",
-                      footer: "hidden",
-                    },
-                  }}
-                  redirectUrl="/dashboard"
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
-              )}
-            </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Chargement..." : mode === "sign-in" ? "Se connecter" : "S'inscrire"}
+              </Button>
+              
+              <div className="text-center text-sm mt-4">
+                {mode === "sign-in" ? (
+                  <p>
+                    Pas encore de compte ?{" "}
+                    <a href="/sign-up" className="text-primary hover:underline">
+                      S'inscrire
+                    </a>
+                  </p>
+                ) : (
+                  <p>
+                    Déjà un compte ?{" "}
+                    <a href="/sign-in" className="text-primary hover:underline">
+                      Se connecter
+                    </a>
+                  </p>
+                )}
+              </div>
+            </form>
           </div>
         </motion.div>
       </main>
